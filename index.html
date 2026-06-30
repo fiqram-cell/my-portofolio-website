@@ -53,6 +53,33 @@
     .nav-links a:hover, .nav-links a.active { color: var(--green); }
     .nav-links a.active { border-bottom: 2px solid var(--green); padding-bottom: 2px; }
 
+    .nav-toggle {
+      display: none; flex-direction: column; justify-content: center; gap: 5px;
+      width: 32px; height: 32px; background: none; border: none; cursor: pointer; z-index: 110;
+    }
+    .nav-toggle span { display: block; width: 100%; height: 2px; background: var(--dark); border-radius: 2px; transition: transform .25s, opacity .25s; }
+    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    @media (max-width: 768px) {
+      nav { padding: 18px 6%; }
+      .nav-toggle { display: flex; }
+      .nav-links {
+        position: fixed; top: 0; right: 0; height: 100vh; width: min(70vw, 280px);
+        background: var(--white); flex-direction: column; align-items: flex-start; gap: 0;
+        padding: 90px 32px 32px; box-shadow: -8px 0 30px rgba(21,32,53,0.12);
+        transform: translateX(100%); transition: transform .3s ease; z-index: 105;
+      }
+      .nav-links.open { transform: translateX(0); }
+      .nav-links li { width: 100%; }
+      .nav-links a { display: block; padding: 14px 0; width: 100%; font-size: 1rem; }
+      .nav-overlay {
+        display: none; position: fixed; inset: 0; background: rgba(21,32,53,0.35); z-index: 104;
+      }
+      .nav-overlay.open { display: block; }
+    }
+
     /* ── HERO ── */
     .hero {
       display: flex; align-items: center; justify-content: space-between;
@@ -290,7 +317,9 @@
 <!-- NAV -->
 <nav>
   <span class="nav-logo">Fiqram</span>
-  <ul class="nav-links">
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  <div class="nav-overlay" id="navOverlay"></div>
+  <ul class="nav-links" id="navLinks">
     <li><a href="#home" class="active">Home</a></li>
     <li><a href="about.html">About</a></li>
     <li><a href="projects.html">Projects</a></li>
@@ -632,6 +661,24 @@ void main() {
 
 <!-- UI SCRIPT -->
 <script>
+  const navToggle = document.getElementById('navToggle');
+  const navLinksMenu = document.getElementById('navLinks');
+  const navOverlay = document.getElementById('navOverlay');
+  if (navToggle) {
+    const closeMenu = () => {
+      navToggle.classList.remove('open');
+      navLinksMenu.classList.remove('open');
+      navOverlay.classList.remove('open');
+    };
+    navToggle.addEventListener('click', () => {
+      navToggle.classList.toggle('open');
+      navLinksMenu.classList.toggle('open');
+      navOverlay.classList.toggle('open');
+    });
+    navOverlay.addEventListener('click', closeMenu);
+    navLinksMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+  }
+
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
