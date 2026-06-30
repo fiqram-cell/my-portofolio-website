@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Portfolio – Marlon</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #4CAF7D;
+      --orange: #E8834A;
+      --dark:   #152035;
+      --mid:    #3a4a60;
+      --light:  #f9fafb;
+      --white:  #ffffff;
+      --shadow: 0 4px 24px rgba(21,32,53,0.08);
+      --radius: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--dark);
+      min-height: 100vh;
+    }
+
+    /* ── ANIMATED SHADER BACKGROUND ── */
+    .page-bg {
+      position: fixed; inset: 0; z-index: -1;
+    }
+    #shader-canvas {
+      display: block; width: 100%; height: 100%;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 7%;
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.55);
+      border-bottom: 1px solid rgba(76,175,125,0.12);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-size: 1.25rem; font-weight: 800; color: var(--dark); letter-spacing: -0.5px; }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; font-weight: 600; font-size: .92rem;
+      color: var(--mid); transition: color .2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--green); }
+    .nav-links a.active { border-bottom: 2px solid var(--green); padding-bottom: 2px; }
+
+    /* ── HERO ── */
+    .hero {
+      display: flex; align-items: center; justify-content: space-between;
+      min-height: calc(100vh - 72px);
+      padding: 60px 7%;
+      gap: 48px;
+    }
+    .hero-text { flex: 1; max-width: 520px; }
+    .hero-text .greeting {
+      font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+      font-weight: 800; line-height: 1.15; color: var(--dark);
+    }
+    .hero-text .name { color: var(--green); }
+    .hero-text .role {
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      font-weight: 700; color: var(--dark); margin-top: 4px;
+    }
+    .hero-text p {
+      margin-top: 18px; font-size: .98rem; color: var(--mid);
+      line-height: 1.7; max-width: 400px;
+    }
+    .hero-actions { display: flex; gap: 14px; margin-top: 32px; flex-wrap: wrap; }
+
+    .btn-primary {
+      background: var(--green); color: #fff;
+      border: none; padding: 13px 32px;
+      border-radius: 50px; font-weight: 700; font-size: .95rem;
+      cursor: pointer; transition: background .2s, transform .15s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-primary:hover { background: #3d9e6b; transform: translateY(-2px); }
+
+    .btn-outline {
+      background: transparent; color: var(--dark);
+      border: 2px solid rgba(21,32,53,0.2);
+      padding: 13px 32px; border-radius: 50px;
+      font-weight: 700; font-size: .95rem;
+      cursor: pointer; transition: border-color .2s, transform .15s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-2px); }
+
+    .social-links { display: flex; gap: 18px; margin-top: 36px; }
+    .social-links a {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,0.8); border: 1px solid rgba(76,175,125,0.2);
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; color: var(--dark);
+      transition: background .2s, border-color .2s, color .2s;
+    }
+    .social-links a:hover { background: var(--green); color: #fff; border-color: var(--green); }
+
+    /* ── HERO PHOTO ── */
+    .hero-visual { flex: 0 0 420px; display: flex; justify-content: center; align-items: center; }
+    .photo-blob { position: relative; width: 360px; height: 380px; }
+    .blob-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--green) 0%, #8DD5AE 100%);
+      border-radius: 62% 38% 55% 45% / 58% 44% 56% 42%;
+      animation: morph 6s ease-in-out infinite;
+    }
+    @keyframes morph {
+      0%,100% { border-radius: 62% 38% 55% 45% / 58% 44% 56% 42%; }
+      50%      { border-radius: 42% 58% 45% 55% / 44% 56% 44% 56%; }
+    }
+    .photo-placeholder {
+      position: absolute; inset: 16px;
+      border-radius: inherit;
+      background: linear-gradient(160deg, #ddefd6 0%, #c8e8d0 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; color: var(--green); overflow: hidden;
+    }
+    .photo-placeholder svg { width: 120px; opacity: .5; }
+    .photo-placeholder span { font-size: .8rem; font-weight: 600; opacity: .6; }
+
+    /* Jika pakai <img> sebagai foto */
+    .photo-blob img {
+      position: absolute; inset: 16px;
+      width: calc(100% - 32px); height: calc(100% - 32px);
+      object-fit: cover; border-radius: inherit;
+    }
+
+    .status-badge {
+      position: absolute; bottom: 20px; right: -10px;
+      background: white; border-radius: 50px; padding: 8px 16px;
+      box-shadow: var(--shadow); display: flex; align-items: center; gap: 8px;
+      font-size: .82rem; font-weight: 700; color: var(--dark);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+    /* ── SECTION COMMONS ── */
+    section { padding: 80px 7%; }
+    .section-label {
+      font-size: .78rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--orange); margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800;
+      color: var(--dark); line-height: 1.2; margin-bottom: 20px;
+    }
+
+    /* ── ABOUT PREVIEW ── */
+    .about-preview {
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(76,175,125,0.15);
+      border-radius: 28px;
+      padding: 60px;
+      display: flex; align-items: center; gap: 56px;
+    }
+    .about-left { flex: 1; }
+    .about-right { flex: 1; }
+    .about-right p {
+      color: var(--mid); line-height: 1.8; font-size: .97rem; margin-bottom: 16px;
+    }
+    .stat-row { display: flex; gap: 32px; margin-top: 28px; }
+    .stat .num { font-size: 2rem; font-weight: 800; color: var(--green); }
+    .stat .lbl { font-size: .8rem; font-weight: 600; color: var(--mid); margin-top: 2px; }
+    .divider { width: 1px; background: rgba(76,175,125,0.2); align-self: stretch; }
+
+    /* ── PROJECTS ── */
+    .projects-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 36px;
+    }
+    .see-all {
+      font-weight: 700; font-size: .9rem; color: var(--orange);
+      text-decoration: none; border-bottom: 2px solid var(--orange);
+      padding-bottom: 2px; transition: opacity .2s;
+    }
+    .see-all:hover { opacity: .7; }
+
+    .filter-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 32px; }
+    .tab {
+      padding: 7px 20px; border-radius: 50px; font-size: .85rem; font-weight: 600;
+      border: 1.5px solid rgba(21,32,53,0.15); background: transparent;
+      cursor: pointer; color: var(--mid); transition: all .2s;
+    }
+    .tab.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .tab:hover:not(.active) { border-color: var(--orange); color: var(--orange); }
+
+    .projects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+    .project-card {
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(76,175,125,0.12);
+      border-radius: var(--radius);
+      overflow: hidden; transition: transform .25s, box-shadow .25s;
+    }
+    .project-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(21,32,53,0.12); }
+
+    .card-img {
+      width: 100%; height: 180px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .card-img-1 { background: linear-gradient(135deg, #c8e6d0 0%, #a8d8b0 100%); }
+    .card-img-2 { background: linear-gradient(135deg, #fddcc8 0%, #f5c8a8 100%); }
+    .card-img-3 { background: linear-gradient(135deg, #c8d8ed 0%, #a8c0e0 100%); }
+    .card-img-4 { background: linear-gradient(135deg, #edd8c8 0%, #e0c0a8 100%); }
+    .card-img-5 { background: linear-gradient(135deg, #d8c8ed 0%, #c0a8e0 100%); }
+    .card-img-6 { background: linear-gradient(135deg, #c8edd8 0%, #a8e0c0 100%); }
+    .card-img-icon { font-size: 3rem; opacity: .4; }
+    .card-tag {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,0.9); font-size: .72rem; font-weight: 700;
+      padding: 4px 10px; border-radius: 50px; color: var(--orange);
+    }
+    .card-body { padding: 20px; }
+    .card-title { font-size: 1rem; font-weight: 800; color: var(--dark); margin-bottom: 8px; }
+    .card-desc { font-size: .83rem; color: var(--mid); line-height: 1.6; margin-bottom: 14px; }
+    .card-meta { display: flex; align-items: center; gap: 14px; font-size: .78rem; color: #8a9ab0; font-weight: 500; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: linear-gradient(135deg,
+        rgba(76,175,125,0.18) 0%,
+        rgba(255,255,255,0.9) 40%,
+        rgba(232,131,74,0.14) 100%);
+      border-top: 1px solid rgba(76,175,125,0.15);
+      padding: 48px 7% 28px;
+    }
+    .footer-inner {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 40px; flex-wrap: wrap; margin-bottom: 36px;
+    }
+    .footer-brand .nav-logo { font-size: 1.4rem; margin-bottom: 10px; }
+    .footer-brand p { font-size: .88rem; color: var(--mid); max-width: 240px; line-height: 1.6; }
+    .footer-links h4 { font-size: .85rem; font-weight: 700; color: var(--dark); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .footer-links a { text-decoration: none; font-size: .88rem; color: var(--mid); transition: color .2s; }
+    .footer-links a:hover { color: var(--green); }
+    .footer-social { display: flex; gap: 12px; margin-top: 16px; }
+    .footer-social a {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.8); border: 1px solid rgba(76,175,125,0.2);
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; color: var(--dark); transition: all .2s;
+    }
+    .footer-social a:hover { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .footer-bottom {
+      border-top: 1px solid rgba(76,175,125,0.12);
+      padding-top: 20px; display: flex;
+      justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    }
+    .footer-bottom p { font-size: .82rem; color: #8a9ab0; }
+    .footer-bottom a { color: var(--green); text-decoration: none; font-weight: 600; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px) {
+      .hero { flex-direction: column-reverse; text-align: center; padding: 40px 5%; }
+      .hero-visual { flex: 0 0 auto; }
+      .hero-text p { margin: 18px auto 0; }
+      .hero-actions { justify-content: center; }
+      .social-links { justify-content: center; }
+      .about-preview { flex-direction: column; padding: 36px; }
+      .divider { display: none; }
+      .projects-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media(max-width:600px) {
+      .projects-grid { grid-template-columns: 1fr; }
+      section { padding: 60px 5%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ANIMATED SHADER BACKGROUND -->
+<div class="page-bg">
+  <canvas id="shader-canvas"></canvas>
+</div>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">Fiqram</span>
+  <ul class="nav-links">
+    <li><a href="#home" class="active">Home</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="projects.html">Projects</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="home" class="hero">
+  <div class="hero-text">
+    <div class="greeting">
+      Hi,<br>
+      I'm <span class="name">Fiqram</span>
+    </div>
+    <div class="role">Web Designer & Developer</div>
+    <p>Saya membuat pengalaman digital yang elegan dan berdampak — dari konsep desain hingga produk nyata yang bisa digunakan.</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">Hubungi Saya</a>
+      <a href="#projects" class="btn-outline">Lihat Karya</a>
+    </div>
+    <div class="social-links">
+      <!-- LinkedIn -->
+      <a href="https://linkedin.com/in/username-anda" title="LinkedIn" target="_blank">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      </a>
+      <!-- Email -->
+      <a href="mailto:email@anda.com" title="Email" target="_blank">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      </a>
+      <!-- Instagram -->
+      <a href="https://instagram.com/username-anda" title="Instagram" target="_blank">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="photo-blob">
+      <div class="blob-bg"></div>
+      <!-- Ganti div di bawah dengan <img src="img/fotok.png" alt="Foto"> jika sudah ada foto -->
+      <img src="img/fotok.png" alt="Foto Marlon" style="
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+">
+      <div class="status-badge">
+        <div class="dot"></div>
+        Tersedia untuk proyek
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT PREVIEW -->
+<section id="about" style="padding-top: 0;">
+  <div class="about-preview">
+    <div class="about-left">
+      <div class="section-label">Tentang Saya</div>
+      <div class="section-title">Desainer yang<br>berpikir seperti developer</div>
+      <div class="stat-row">
+        <div class="stat"><div class="num">3+</div><div class="lbl">Tahun Pengalaman</div></div>
+        <div class="stat"><div class="num">40+</div><div class="lbl">Proyek Selesai</div></div>
+        <div class="stat"><div class="num">25+</div><div class="lbl">Klien Puas</div></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="about-right">
+      <p>Saya adalah seorang Web Designer & Developer yang berfokus pada pembuatan antarmuka yang indah, intuitif, dan mudah digunakan. Dengan latar belakang desain grafis dan pengembangan front-end, saya menghubungkan dunia estetika dan teknologi.</p>
+      <p>Saya percaya bahwa desain yang baik bukan hanya soal tampilan — tapi soal bagaimana sesuatu <em>terasa</em> saat digunakan. Setiap piksel punya tujuan.</p>
+      <a href="#" class="btn-primary" style="margin-top:8px;">Lihat Selengkapnya</a>
+    </div>
+  </div>
+</section>
+
+<!-- RECENT PROJECTS -->
+<section id="projects">
+  <div class="projects-header">
+    <div>
+      <div class="section-label">Portofolio</div>
+      <div class="section-title">Proyek Terbaru</div>
+    </div>
+    <a href="#" class="see-all">Lihat Semua →</a>
+  </div>
+
+  <div class="filter-tabs">
+    <button class="tab active">Semua</button>
+    <button class="tab">Branding</button>
+    <button class="tab">Web Design</button>
+    <button class="tab">UI/UX</button>
+    <button class="tab">Mobile App</button>
+  </div>
+
+  <div class="projects-grid">
+    <div class="project-card">
+      <div class="card-img card-img-1">
+        <span class="card-img-icon">🎨</span>
+        <span class="card-tag">Branding</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Global Brand Refresh</div>
+        <div class="card-desc">Redesain identitas merek lengkap untuk perusahaan teknologi Fortune 500, mencakup logo, panduan visual, dan aset digital.</div>
+        <div class="card-meta">
+          <span>👤 TechCorp Global</span>
+          <span>📅 2024</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="card-img card-img-2">
+        <span class="card-img-icon">🛍️</span>
+        <span class="card-tag">Web Design</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">E-Commerce Redesign</div>
+        <div class="card-desc">Perancangan ulang pengalaman belanja online yang meningkatkan konversi sebesar 38% dalam 3 bulan pertama peluncuran.</div>
+        <div class="card-meta">
+          <span>👤 ShopNova</span>
+          <span>📅 2024</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="card-img card-img-3">
+        <span class="card-img-icon">📱</span>
+        <span class="card-tag">Mobile App</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Finance Tracker App</div>
+        <div class="card-desc">Aplikasi manajemen keuangan pribadi dengan visualisasi data yang intuitif dan antarmuka yang bersih dan modern.</div>
+        <div class="card-meta">
+          <span>👤 FinTrack</span>
+          <span>📅 2023</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="card-img card-img-4">
+        <span class="card-img-icon">🌿</span>
+        <span class="card-tag">Branding</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Sustainable Brand Identity</div>
+        <div class="card-desc">Identitas merek ramah lingkungan untuk startup fashion berkelanjutan dengan nilai estetika alam yang kuat.</div>
+        <div class="card-meta">
+          <span>👤 EcoThread</span>
+          <span>📅 2023</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="card-img card-img-5">
+        <span class="card-img-icon">🎓</span>
+        <span class="card-tag">UI/UX</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Learning Platform UI</div>
+        <div class="card-desc">Desain antarmuka platform e-learning dengan gamifikasi dan dashboard progres belajar yang memotivasi pengguna.</div>
+        <div class="card-meta">
+          <span>👤 EduSpace</span>
+          <span>📅 2023</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="card-img card-img-6">
+        <span class="card-img-icon">🏥</span>
+        <span class="card-tag">Web Design</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Health Clinic Website</div>
+        <div class="card-desc">Website klinik kesehatan modern dengan sistem booking online yang memudahkan pasien membuat janji temu secara digital.</div>
+        <div class="card-meta">
+          <span>👤 MedCare Clinic</span>
+          <span>📅 2022</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="contact">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo">Marlon</div>
+      <p>Membuat pengalaman digital yang bermakna — satu piksel dalam satu waktu.</p>
+      <div class="footer-social">
+        <a href="https://linkedin.com/in/username-anda" title="LinkedIn" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        </a>
+        <a href="mailto:email@anda.com" title="Email" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        </a>
+        <a href="https://instagram.com/username-anda" title="Instagram" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-links">
+      <h4>Navigasi</h4>
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-links">
+      <h4>Layanan</h4>
+      <ul>
+        <li><a href="#">Web Design</a></li>
+        <li><a href="#">UI/UX Design</a></li>
+        <li><a href="#">Brand Identity</a></li>
+        <li><a href="#">Front-end Dev</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-links">
+      <h4>Kontak</h4>
+      <ul>
+        <li><a href="mailto:email@anda.com">email@anda.com</a></li>
+        <li><a href="#">+62 812 3456 7890</a></li>
+        <li><a href="#">Indonesia</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2024 <a href="#">Marlon</a>. Semua hak dilindungi.</p>
+    <p>Dibuat dengan ❤️</p>
+  </div>
+</footer>
+
+<!-- SHADER SCRIPT -->
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas');
+
+  function syncSize() {
+    const w = canvas.clientWidth  || window.innerWidth;
+    const h = canvas.clientHeight || window.innerHeight;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+varying vec2 v_texCoord;
+
+void main() {
+    vec2 uv = v_texCoord;
+
+    // Warna dasar putih bersih
+    vec3 backgroundColor = vec3(0.96, 0.98, 0.96);
+
+    // Hijau tipis (#4CAF7D)
+    vec3 color1 = vec3(0.298, 0.686, 0.490);
+    // Orange tipis (#E8834A)
+    vec3 color2 = vec3(0.910, 0.514, 0.290);
+    // Hijau muda lembut
+    vec3 color3 = vec3(0.82, 0.96, 0.87);
+
+    float noise1 = sin(uv.x * 3.0 + u_time * 0.35) * cos(uv.y * 2.0 + u_time * 0.22);
+    float noise2 = cos(uv.y * 4.0 - u_time * 0.28) * sin(uv.x * 2.5 + u_time * 0.18);
+
+    vec3 finalColor = backgroundColor;
+    finalColor = mix(finalColor, color1, smoothstep(0.3, 0.8, noise1) * 0.16);
+    finalColor = mix(finalColor, color2, smoothstep(0.4, 0.9, noise2) * 0.13);
+    finalColor = mix(finalColor, color3, smoothstep(0.5, 1.0, noise1 + noise2) * 0.10);
+
+    // Glow halus
+    finalColor += 0.012 * sin(u_time * 0.4 + length(uv - 0.5) * 8.0);
+
+    gl_FragColor = vec4(finalColor, 1.0);
+}`;
+
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes  = gl.getUniformLocation(prog, 'u_resolution');
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes)  gl.uniform2f(uRes, canvas.width, canvas.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+
+<!-- UI SCRIPT -->
+<script>
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  const sections = document.querySelectorAll('section[id], footer[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>

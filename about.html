@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About – Fiqram</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #4CAF7D;
+      --orange: #E8834A;
+      --dark:   #152035;
+      --mid:    #3a4a60;
+      --shadow: 0 4px 24px rgba(21,32,53,0.08);
+      --radius: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--dark); min-height: 100vh; }
+
+    /* ── SHADER BG ── */
+    .page-bg { position: fixed; inset: 0; z-index: -1; }
+    #shader-canvas { display: block; width: 100%; height: 100%; }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 7%;
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.55);
+      border-bottom: 1px solid rgba(76,175,125,0.12);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-size: 1.25rem; font-weight: 800; color: var(--dark); letter-spacing: -0.5px; text-decoration: none; }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; font-weight: 600; font-size: .92rem;
+      color: var(--mid); transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+    .nav-links a.active { color: var(--green); border-bottom: 2px solid var(--green); padding-bottom: 2px; }
+
+    /* ── HERO ABOUT ── */
+    .about-hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 80px 7%;
+      gap: 80px;
+    }
+
+    /* Photo side */
+    .photo-side { flex: 0 0 340px; display: flex; justify-content: center; align-items: center; position: relative; }
+
+    .photo-ring-outer {
+      width: 300px; height: 300px; border-radius: 50%;
+      border: 2px solid rgba(76,175,125,0.25);
+      display: flex; align-items: center; justify-content: center;
+      animation: spin-slow 20s linear infinite;
+      position: relative;
+    }
+    .photo-ring-outer::before {
+      content: '';
+      position: absolute; inset: -12px; border-radius: 50%;
+      border: 1px dashed rgba(232,131,74,0.3);
+      animation: spin-slow 30s linear infinite reverse;
+    }
+
+    /* Orbit dots */
+    .orbit-dot {
+      position: absolute; width: 10px; height: 10px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 12px rgba(76,175,125,0.6);
+    }
+    .orbit-dot:nth-child(1) { top: -5px; left: 50%; transform: translateX(-50%); }
+    .orbit-dot:nth-child(2) { bottom: -5px; left: 50%; transform: translateX(-50%); background: var(--orange); box-shadow: 0 0 12px rgba(232,131,74,0.6); }
+
+    @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .photo-circle {
+      width: 260px; height: 260px; border-radius: 50%;
+      overflow: hidden;
+      background: linear-gradient(135deg, #c8e6d0, #a8d8b0);
+      box-shadow: 0 20px 60px rgba(76,175,125,0.25), 0 0 0 6px rgba(255,255,255,0.8);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      animation: none; /* counter the parent spin */
+      position: relative; z-index: 1;
+    }
+    /* Stop the photo from spinning with the ring */
+    .photo-ring-outer { position: relative; }
+    .photo-circle { animation: counter-spin 20s linear infinite; }
+    @keyframes counter-spin { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+
+    .photo-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .photo-circle .placeholder-icon {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--green);
+    }
+    .photo-circle .placeholder-icon svg { width: 80px; opacity: .45; }
+    .photo-circle .placeholder-icon span { font-size: .75rem; font-weight: 600; opacity: .5; }
+
+    /* Floating tag */
+    .float-tag {
+      position: absolute;
+      background: white; border-radius: 50px; padding: 8px 18px;
+      box-shadow: var(--shadow); font-size: .8rem; font-weight: 700;
+      display: flex; align-items: center; gap: 8px; color: var(--dark);
+      animation: float 4s ease-in-out infinite;
+    }
+    .float-tag.tag-1 { bottom: 10px; right: -20px; animation-delay: 0s; }
+    .float-tag.tag-2 { top: 20px; right: -30px; animation-delay: 1.5s; }
+    .float-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .float-dot.green { background: var(--green); }
+    .float-dot.orange { background: var(--orange); }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    /* Text side */
+    .text-side { flex: 1; }
+
+    .page-eyebrow {
+      font-size: .75rem; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--orange);
+      margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .page-eyebrow::before {
+      content: ''; display: block; width: 32px; height: 2px; background: var(--orange);
+    }
+
+    .page-title {
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      font-weight: 800; line-height: 1.1; color: var(--dark); margin-bottom: 24px;
+    }
+    .page-title .accent { color: var(--green); }
+
+    .bio {
+      font-size: 1rem; color: var(--mid); line-height: 1.85;
+      max-width: 540px; margin-bottom: 32px;
+    }
+    .bio strong { color: var(--dark); font-weight: 700; }
+
+    /* Interests */
+    .interests-title {
+      font-size: .75rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--mid); margin-bottom: 14px;
+    }
+    .interest-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 36px; }
+    .interest-tag {
+      padding: 7px 18px; border-radius: 50px;
+      background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
+      border: 1.5px solid rgba(76,175,125,0.2);
+      font-size: .82rem; font-weight: 600; color: var(--mid);
+      transition: all .2s; cursor: default;
+    }
+    .interest-tag:hover { border-color: var(--green); color: var(--green); background: rgba(76,175,125,0.06); }
+
+    /* CTA */
+    .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--green); color: #fff;
+      border: none; padding: 14px 34px;
+      border-radius: 50px; font-weight: 700; font-size: .95rem;
+      cursor: pointer; transition: background .2s, transform .15s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover { background: #3d9e6b; transform: translateY(-2px); }
+    .btn-outline {
+      background: transparent; color: var(--dark);
+      border: 2px solid rgba(21,32,53,0.15);
+      padding: 14px 34px; border-radius: 50px;
+      font-weight: 700; font-size: .95rem;
+      cursor: pointer; transition: all .2s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-outline:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-2px); }
+
+    /* ── SKILLS SECTION ── */
+    .skills-section {
+      padding: 80px 7%;
+    }
+    .section-header { text-align: center; margin-bottom: 56px; }
+    .section-label {
+      font-size: .75rem; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--orange); margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 800;
+      color: var(--dark); line-height: 1.2;
+    }
+    .section-title .accent { color: var(--green); }
+
+    .skills-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+      max-width: 900px; margin: 0 auto;
+    }
+
+    .skill-card {
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(76,175,125,0.12);
+      border-radius: 20px;
+      padding: 28px 20px;
+      text-align: center;
+      transition: transform .25s, box-shadow .25s, border-color .25s;
+      cursor: default;
+      position: relative; overflow: hidden;
+    }
+    .skill-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(76,175,125,0.06), transparent);
+      opacity: 0; transition: opacity .3s;
+    }
+    .skill-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(21,32,53,0.1); border-color: rgba(76,175,125,0.3); }
+    .skill-card:hover::before { opacity: 1; }
+
+    .skill-icon {
+      width: 60px; height: 60px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px; font-size: 1.8rem;
+      position: relative; z-index: 1;
+    }
+    .skill-name { font-size: .88rem; font-weight: 700; color: var(--dark); position: relative; z-index: 1; }
+    .skill-type { font-size: .72rem; color: var(--mid); margin-top: 4px; font-weight: 500; position: relative; z-index: 1; }
+
+    /* Skill icon colors */
+    .sk-python  .skill-icon { background: rgba(55,118,171,0.1); }
+    .sk-html    .skill-icon { background: rgba(228,77,38,0.1); }
+    .sk-css     .skill-icon { background: rgba(38,77,228,0.1); }
+    .sk-js      .skill-icon { background: rgba(247,223,30,0.15); }
+    .sk-r       .skill-icon { background: rgba(25,150,210,0.1); }
+    .sk-colab   .skill-icon { background: rgba(250,168,27,0.12); }
+    .sk-excel   .skill-icon { background: rgba(33,115,70,0.1); }
+    .sk-powerbi .skill-icon { background: rgba(242,166,0,0.12); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: linear-gradient(135deg, rgba(76,175,125,0.18) 0%, rgba(255,255,255,0.9) 40%, rgba(232,131,74,0.14) 100%);
+      border-top: 1px solid rgba(76,175,125,0.15);
+      padding: 32px 7%;
+    }
+    .footer-bottom {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    }
+    .footer-bottom p { font-size: .82rem; color: #8a9ab0; }
+    .footer-bottom a { color: var(--green); text-decoration: none; font-weight: 600; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px) {
+      .about-hero { flex-direction: column; text-align: center; padding: 60px 5%; gap: 50px; }
+      .photo-side { flex: 0 0 auto; }
+      .bio { margin: 0 auto 32px; }
+      .interest-tags { justify-content: center; }
+      .cta-row { justify-content: center; }
+      .page-eyebrow { justify-content: center; }
+      .float-tag.tag-2 { display: none; }
+      .skills-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media(max-width:500px) {
+      .skills-grid { grid-template-columns: repeat(2,1fr); gap: 14px; }
+    }
+    .footer-inner {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 40px; flex-wrap: wrap; margin-bottom: 36px;
+}
+.footer-brand .nav-logo { font-size: 1.4rem; margin-bottom: 10px; display: block; }
+.footer-brand p { font-size: .88rem; color: var(--mid); max-width: 240px; line-height: 1.6; }
+.footer-links h4 { font-size: .85rem; font-weight: 700; color: var(--dark); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+.footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.footer-links a { text-decoration: none; font-size: .88rem; color: var(--mid); transition: color .2s; }
+.footer-links a:hover { color: var(--green); }
+.footer-social { display: flex; gap: 12px; margin-top: 16px; }
+.footer-social a {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.8); border: 1px solid rgba(76,175,125,0.2);
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; color: var(--dark); transition: all .2s;
+}
+.footer-social a:hover { background: var(--orange); color: #fff; border-color: var(--orange); }
+  </style>
+</head>
+<body>
+
+<div class="page-bg"><canvas id="shader-canvas"></canvas></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">Fiqram</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html" class="active">About</a></li>
+    <li><a href="projects.html">Projects</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ABOUT HERO -->
+<section class="about-hero">
+
+  <!-- Photo -->
+  <div class="photo-side">
+    <div class="photo-ring-outer">
+      <div class="orbit-dot"></div>
+      <div class="orbit-dot"></div>
+      <div class="photo-circle">
+        <!-- Ganti dengan foto Anda: <img src="img/fotok.png" alt="Foto Marlon"> -->
+        <img src="img/fotok.png" alt="Foto Marlon" style="
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+">
+      </div>
+    </div>
+
+    <div class="float-tag tag-1">
+      <div class="float-dot green"></div>
+      Open to work
+    </div>
+    <div class="float-tag tag-2">
+      <div class="float-dot orange"></div>
+      Data & Design
+    </div>
+  </div>
+
+  <!-- Text -->
+  <div class="text-side">
+    <div class="page-eyebrow">Tentang Saya</div>
+    <h1 class="page-title">
+      Saya <span class="accent">Fiqram</span>,<br>
+      kreator digital<br>yang berbasis data.
+    </h1>
+    <p class="bio">
+      Saya adalah seorang <strong>Web Designer & Data Enthusiast</strong> yang percaya bahwa keindahan dan logika bisa berjalan beriringan. Saya menggabungkan kemampuan desain visual dengan analisis data untuk menciptakan solusi yang tidak hanya <strong>terlihat bagus</strong>, tapi juga <strong>bermakna secara insight</strong>.
+      <br><br>
+      Perjalanan saya dimulai dari rasa penasaran tentang bagaimana data bisa bercerita — dan bagaimana tampilan yang tepat bisa menyampaikan cerita itu dengan jelas. Dari membangun dashboard interaktif hingga merancang antarmuka yang intuitif, saya selalu berusaha menghadirkan karya yang berdampak.
+    </p>
+
+    <div class="interests-title">Minat Utama</div>
+    <div class="interest-tags">
+      <span class="interest-tag">📊 Data Visualization</span>
+      <span class="interest-tag">🎨 UI/UX Design</span>
+      <span class="interest-tag">🤖 Machine Learning</span>
+      <span class="interest-tag">🌐 Web Development</span>
+      <span class="interest-tag">📈 Business Analytics</span>
+      <span class="interest-tag">✍️ Creative Writing</span>
+    </div>
+
+    <div class="cta-row">
+      <a href="contact.html" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        Hubungi Saya
+      </a>
+      <a href="#" class="btn-outline" download>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Download CV
+      </a>
+    </div>
+  </div>
+
+</section>
+
+<!-- SKILLS SECTION -->
+<section class="skills-section">
+  <div class="section-header">
+    <div class="section-label">Tech Stack</div>
+    <div class="section-title">Tools & <span class="accent">Keahlian</span></div>
+  </div>
+
+  <div class="skills-grid">
+
+    <!-- Python -->
+    <div class="skill-card sk-python">
+      <div class="skill-icon">
+        <svg viewBox="0 0 24 24" width="34" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11.914 0C5.82 0 6.2 2.656 6.2 2.656l.007 2.752h5.814v.826H3.89S0 5.789 0 11.953c0 6.163 3.403 5.942 3.403 5.942h2.031v-2.86s-.109-3.402 3.347-3.402h5.768s3.238.052 3.238-3.13V3.13S18.332 0 11.914 0zm-3.2 1.814a1.044 1.044 0 1 1 0 2.088 1.044 1.044 0 0 1 0-2.088z" fill="#3776AB"/>
+          <path d="M12.086 24c6.094 0 5.714-2.656 5.714-2.656l-.007-2.752h-5.814v-.826h8.131S24 18.211 24 12.047c0-6.163-3.403-5.942-3.403-5.942h-2.031v2.86s.109 3.402-3.347 3.402H9.451s-3.238-.052-3.238 3.13v5.373S5.668 24 12.086 24zm3.2-1.814a1.044 1.044 0 1 1 0-2.088 1.044 1.044 0 0 1 0 2.088z" fill="#FFD43B"/>
+        </svg>
+      </div>
+      <div class="skill-name">Python</div>
+      <div class="skill-type">Data & Scripting</div>
+    </div>
+
+    <!-- HTML -->
+    <div class="skill-card sk-html">
+      <div class="skill-icon">
+        <svg viewBox="0 0 24 24" width="34" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.23-2.622L5.412 4.41l.698 8.01h9.126l-.326 3.426-2.91.804-2.955-.81-.188-2.11H6.248l.33 4.171L12 19.351l5.379-1.443.744-8.157H8.531z" fill="#E34F26"/>
+        </svg>
+      </div>
+      <div class="skill-name">HTML</div>
+      <div class="skill-type">Markup Language</div>
+    </div>
+
+    <!-- CSS -->
+    <div class="skill-card sk-css">
+      <div class="skill-icon">
+        <svg viewBox="0 0 24 24" width="34" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.565-2.438L1.5 0zm17.09 4.413L5.41 4.41l.213 2.622 10.125.002-.255 2.716h-6.64l.24 2.573h6.182l-.366 3.523-2.91.804-2.956-.81-.188-2.11h-2.61l.29 3.855L12 19.288l5.373-1.53L18.59 4.414v-.001z" fill="#1572B6"/>
+        </svg>
+      </div>
+      <div class="skill-name">CSS</div>
+      <div class="skill-type">Styling</div>
+    </div>
+
+    <!-- JavaScript -->
+    <div class="skill-card sk-js">
+      <div class="skill-icon">
+        <svg viewBox="0 0 24 24" width="34" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 0h24v24H0V0zm22.034 18.276c-.175-1.095-.888-2.015-3.003-2.873-.736-.345-1.554-.585-1.797-1.14-.091-.33-.105-.51-.046-.705.15-.646.915-.84 1.515-.66.39.12.75.42.976.9 1.034-.676 1.034-.676 1.755-1.125-.27-.42-.404-.601-.586-.78-.63-.705-1.469-1.065-2.834-1.034l-.705.089c-.676.165-1.32.525-1.71 1.005-1.14 1.291-.811 3.541.569 4.471 1.365 1.02 3.361 1.244 3.616 2.205.24 1.17-.87 1.545-1.966 1.41-.811-.18-1.26-.586-1.755-1.336l-1.83 1.051c.21.48.45.689.81 1.109 1.74 1.756 6.09 1.666 6.871-1.004.029-.09.24-.705.074-1.65l.046.067zm-8.983-7.245h-2.248c0 1.938-.009 3.864-.009 5.805 0 1.232.063 2.363-.138 2.711-.33.689-1.18.601-1.566.48-.396-.196-.597-.466-.83-.855-.063-.105-.11-.196-.127-.196l-1.825 1.125c.305.63.75 1.172 1.324 1.517.855.51 2.004.675 3.207.405.783-.226 1.458-.691 1.811-1.411.51-.93.402-2.07.397-3.346.012-2.054 0-4.109 0-6.179l.004-.056z" fill="#F7DF1E"/>
+        </svg>
+      </div>
+      <div class="skill-name">JavaScript</div>
+      <div class="skill-type">Web Scripting</div>
+    </div>
+
+    <!-- R Studio -->
+    <div class="skill-card sk-r">
+      <div class="skill-icon">
+        <svg viewBox="0 0 24 24" width="34" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 0C5.371 0 0 5.371 0 12s5.371 12 12 12 12-5.371 12-12S18.629 0 12 0zm-.47 3.6c3.954 0 6.84 1.7 6.84 4.8 0 2.4-1.68 4.02-4.08 4.56l3.96 5.28c.12.18.06.42-.12.54-.06.06-.18.06-.24.06h-2.34c-.36 0-.6-.18-.78-.48l-3.6-5.22h-1.32v5.22c0 .3-.24.54-.54.54H7.5c-.3 0-.54-.24-.54-.54V4.14c0-.3.24-.54.54-.54h4.03zm-.3 2.04H9.9v4.56h1.32c1.86 0 3.06-.9 3.06-2.28s-1.2-2.28-3.06-2.28z" fill="#1E96DC"/>
+        </svg>
+      </div>
+      <div class="skill-name">R Studio</div>
+      <div class="skill-type">Statistical Analysis</div>
+    </div>
+
+    <!-- Google Colab -->
+    <div class="skill-card sk-colab">
+      <div class="skill-icon">
+        <svg viewBox="0 0 24 24" width="34" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16.9 4.8C13.9 1.8 9.4 1.3 5.9 3.7L8.2 6c2.2-1.3 5.1-1 7 .9 2.2 2.2 2.2 5.8 0 8.1-2.2 2.2-5.8 2.2-8.1 0-1-.9-1.6-2.1-1.8-3.4L3 9.3C2.5 11 2.7 12.9 3.5 14.5l-1.8 1.8 2.3 2.3 1.7-1.7c2.1 1.3 4.7 1.6 7.1.8l.1-.1c.1 0 .3-.1.4-.2 3.5-1.7 5.6-5.5 5-9.3-.2-1-.5-2-1.4-3.3z" fill="#F9AB00"/>
+          <path d="M8.1 19.2c3 3 7.5 3.5 11 1.1l-2.3-2.3c-2.2 1.3-5.1 1-7-.9-2.2-2.2-2.2-5.8 0-8.1 1-.9 2.1-1.5 3.4-1.7L15 5c-1.7-.5-3.6-.3-5.2.5l-.1.1c-.1 0-.3.1-.4.2-3.5 1.7-5.6 5.5-5 9.3.2 1.1.6 2.2 1.5 3.4l1.7 1.7-2.2 2.2 2.3 2.3 1.8-1.8c.4.2.4.2.7.3z" fill="#E8710A"/>
+        </svg>
+      </div>
+      <div class="skill-name">Google Colab</div>
+      <div class="skill-type">ML Notebook</div>
+    </div>
+
+    <!-- Excel -->
+    <div class="skill-card sk-excel">
+      <div class="skill-icon">
+        <svg viewBox="0 0 24 24" width="34" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21.17 0H8.83C8.37 0 8 .37 8 .83V4L15 6l7-2V.83C22 .37 21.63 0 21.17 0z" fill="#21A366"/>
+          <path d="M8 4h7v4H8z" fill="#107C41"/>
+          <path d="M22 4h-7v4h7V4z" fill="#33C65A"/>
+          <path d="M8 8h7v4H8z" fill="#107C41"/>
+          <path d="M22 8h-7v4h7V8z" fill="#21A366"/>
+          <path d="M8 12h7v4H8z" fill="#33C65A"/>
+          <path d="M22 12h-7v4h7v-4z" fill="#107C41"/>
+          <path d="M8.83 24H21.17c.46 0 .83-.37.83-.83V20H8v3.17c0 .46.37.83.83.83z" fill="#21A366"/>
+          <path d="M8 16h7v4H8z" fill="#21A366"/>
+          <path d="M22 16h-7v4h7v-4z" fill="#33C65A"/>
+          <path d="M13 6H2.83C2.37 6 2 6.37 2 6.83v10.34c0 .46.37.83.83.83H13V6z" fill="#185C37"/>
+          <path d="M5.56 15.5L7.4 12l-1.7-3.5H7.3l.9 2.2c.08.21.14.37.16.48h.01c.04-.13.1-.3.19-.51L9.5 8.5h1.6L9.44 12 11.1 15.5H9.6l-1.02-2.37c-.05-.1-.09-.24-.13-.42h-.02c-.04.16-.08.3-.14.42L7.26 15.5H5.56z" fill="white"/>
+        </svg>
+      </div>
+      <div class="skill-name">Excel</div>
+      <div class="skill-type">Spreadsheet & Analysis</div>
+    </div>
+
+    <!-- Power BI -->
+    <div class="skill-card sk-powerbi">
+      <div class="skill-icon">
+        <svg viewBox="0 0 24 24" width="34" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 22V9.5h3V22H5z" fill="#F2C811"/>
+          <path d="M9.5 22V4h3v18h-3z" fill="#F2C811" opacity=".85"/>
+          <path d="M14 22V7h3v15h-3z" fill="#F2C811" opacity=".7"/>
+          <path d="M18.5 22V11h3v11h-3z" fill="#F2C811" opacity=".55"/>
+          <rect x="2" y="21" width="20" height="1.5" rx=".75" fill="#F2C811"/>
+        </svg>
+      </div>
+      <div class="skill-name">Power BI</div>
+      <div class="skill-type">Data Visualization</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<!-- FOOTER -->
+<footer id="contact">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo">Marlon</div>
+      <p>Membuat pengalaman digital yang bermakna — satu piksel dalam satu waktu.</p>
+      <div class="footer-social">
+        <a href="https://linkedin.com/in/username-anda" title="LinkedIn" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        </a>
+        <a href="mailto:email@anda.com" title="Email" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        </a>
+        <a href="https://instagram.com/username-anda" title="Instagram" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-links">
+      <h4>Navigasi</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="#">Projects</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-links">
+      <h4>Layanan</h4>
+      <ul>
+        <li><a href="#">Web Design</a></li>
+        <li><a href="#">UI/UX Design</a></li>
+        <li><a href="#">Brand Identity</a></li>
+        <li><a href="#">Front-end Dev</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-links">
+      <h4>Kontak</h4>
+      <ul>
+        <li><a href="mailto:email@anda.com">email@anda.com</a></li>
+        <li><a href="#">+62 812 3456 7890</a></li>
+        <li><a href="#">Indonesia</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2024 <a href="index.html">Marlon</a>. Semua hak dilindungi.</p>
+    <p>Dibuat dengan ❤️</p>
+  </div>
+</footer>
+
+<!-- SHADER SCRIPT -->
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas');
+  function syncSize() {
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || window.innerHeight;
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  }
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(syncSize).observe(canvas);
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+
+  const vs = `attribute vec2 a_position; varying vec2 v_texCoord;
+void main() { v_texCoord = a_position * 0.5 + 0.5; gl_Position = vec4(a_position, 0.0, 1.0); }`;
+
+  const fs = `precision highp float;
+uniform float u_time; uniform vec2 u_resolution; varying vec2 v_texCoord;
+void main() {
+  vec2 uv = v_texCoord;
+  vec3 bg = vec3(0.96, 0.98, 0.96);
+  vec3 c1 = vec3(0.298, 0.686, 0.490);
+  vec3 c2 = vec3(0.910, 0.514, 0.290);
+  vec3 c3 = vec3(0.82, 0.96, 0.87);
+  float n1 = sin(uv.x * 3.0 + u_time * 0.35) * cos(uv.y * 2.0 + u_time * 0.22);
+  float n2 = cos(uv.y * 4.0 - u_time * 0.28) * sin(uv.x * 2.5 + u_time * 0.18);
+  vec3 col = bg;
+  col = mix(col, c1, smoothstep(0.3, 0.8, n1) * 0.16);
+  col = mix(col, c2, smoothstep(0.4, 0.9, n2) * 0.13);
+  col = mix(col, c3, smoothstep(0.5, 1.0, n1 + n2) * 0.10);
+  col += 0.012 * sin(u_time * 0.4 + length(uv - 0.5) * 8.0);
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+  function cs(type, src) {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes  = gl.getUniformLocation(prog, 'u_resolution');
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes)  gl.uniform2f(uRes, canvas.width, canvas.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+
+</body>
+</html>
