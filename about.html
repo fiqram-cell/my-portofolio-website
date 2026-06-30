@@ -55,18 +55,20 @@
       nav { padding: 18px 6%; }
       .nav-toggle { display: flex; }
       .nav-links {
-        position: fixed; top: 0; right: 0; height: 100vh; width: min(70vw, 280px);
-        background: var(--white); flex-direction: column; align-items: flex-start; gap: 0;
-        padding: 90px 32px 32px; box-shadow: -8px 0 30px rgba(21,32,53,0.12);
-        transform: translateX(100%); transition: transform .3s ease; z-index: 105;
+        position: fixed !important; top: 0; right: 0; height: 100vh; width: 75vw; max-width: 280px;
+        background-color: #ffffff !important; flex-direction: column; align-items: flex-start; gap: 0;
+        padding: 90px 32px 32px; box-shadow: -8px 0 30px rgba(21,32,53,0.18);
+        transform: translateX(100%); transition: transform .3s ease; z-index: 1005;
+        opacity: 1 !important;
       }
       .nav-links.open { transform: translateX(0); }
       .nav-links li { width: 100%; }
       .nav-links a { display: block; padding: 14px 0; width: 100%; font-size: 1rem; }
       .nav-overlay {
-        display: none; position: fixed; inset: 0; background: rgba(21,32,53,0.35); z-index: 104;
+        display: none; position: fixed; inset: 0; background: rgba(21,32,53,0.45); z-index: 1004;
       }
       .nav-overlay.open { display: block; }
+      .nav-toggle { z-index: 1006; }
     }
 
     /* ── HERO ABOUT ── */
