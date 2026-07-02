@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin – Upload Project</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #4CAF7D; --orange: #E8834A;
+      --dark: #152035; --mid: #3a4a60;
+      --shadow: 0 4px 24px rgba(21,32,53,0.08);
+      --radius: 14px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--dark); min-height: 100vh; background: #f4f7f4; }
+
+    /* SHADER BG */
+    .page-bg { position: fixed; inset: 0; z-index: -1; }
+    #shader-canvas { display: block; width: 100%; height: 100%; }
+
+    /* LOGIN GATE */
+    #loginGate {
+      position: fixed; inset: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.6); backdrop-filter: blur(12px);
+    }
+    .login-box {
+      background: white; border-radius: 20px; padding: 44px 40px;
+      box-shadow: 0 20px 60px rgba(21,32,53,0.12);
+      text-align: center; width: 360px;
+    }
+    .login-box h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
+    .login-box p { font-size: .88rem; color: var(--mid); margin-bottom: 28px; }
+    .login-box input {
+      width: 100%; padding: 12px 16px; border-radius: 10px;
+      border: 1.5px solid rgba(21,32,53,0.15); font-size: .92rem;
+      font-family: inherit; outline: none; margin-bottom: 14px;
+      transition: border-color .2s;
+    }
+    .login-box input:focus { border-color: var(--green); }
+    .login-box button {
+      width: 100%; padding: 13px; border-radius: 10px;
+      background: var(--green); color: white; font-weight: 700;
+      font-size: .95rem; border: none; cursor: pointer;
+      transition: background .2s;
+    }
+    .login-box button:hover { background: #3d9e6b; }
+    .login-error { color: #c0392b; font-size: .82rem; margin-top: 10px; display: none; }
+
+    /* NAV */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 5%;
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.6);
+      border-bottom: 1px solid rgba(76,175,125,0.12);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 800; color: var(--dark); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .admin-badge {
+      font-size: .68rem; font-weight: 700; background: var(--orange);
+      color: white; padding: 3px 8px; border-radius: 50px; letter-spacing: .5px;
+    }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+    .nav-right a { text-decoration: none; font-weight: 600; font-size: .88rem; color: var(--mid); transition: color .2s; }
+    .nav-right a:hover { color: var(--green); }
+
+    /* MAIN LAYOUT */
+    .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 5% 80px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: start; }
+
+    /* FORM CARD */
+    .card {
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(76,175,125,0.12);
+      border-radius: 22px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 22px 28px; border-bottom: 1px solid rgba(76,175,125,0.1);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .card-header-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--green), #8DD5AE);
+      color: white;
+    }
+    .card-title { font-size: 1rem; font-weight: 800; color: var(--dark); }
+    .card-sub { font-size: .78rem; color: var(--mid); margin-top: 1px; }
+    .card-body { padding: 28px; }
+
+    /* FORM ELEMENTS */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: .78rem; font-weight: 700; color: var(--dark); margin-bottom: 7px; text-transform: uppercase; letter-spacing: .5px; }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%; padding: 11px 14px; border-radius: 10px;
+      border: 1.5px solid rgba(21,32,53,0.13); font-size: .9rem;
+      font-family: inherit; color: var(--dark); outline: none;
+      background: rgba(255,255,255,0.8);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(76,175,125,0.1); }
+    .form-group textarea { resize: vertical; min-height: 110px; }
+
+    /* IMAGE UPLOAD */
+    .img-upload-area {
+      border: 2px dashed rgba(76,175,125,0.3); border-radius: 12px;
+      padding: 28px 20px; text-align: center; cursor: pointer;
+      transition: all .2s; background: rgba(76,175,125,0.03);
+      position: relative;
+    }
+    .img-upload-area:hover { border-color: var(--green); background: rgba(76,175,125,0.06); }
+    .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .img-upload-icon { font-size: 2rem; margin-bottom: 8px; }
+    .img-upload-text { font-size: .85rem; color: var(--mid); font-weight: 600; }
+    .img-upload-sub { font-size: .75rem; color: #8a9ab0; margin-top: 4px; }
+    .img-preview { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-top: 12px; display: none; }
+    .upload-progress {
+      margin-top: 10px; height: 4px; border-radius: 2px;
+      background: rgba(76,175,125,0.15); display: none;
+    }
+    .upload-progress-bar { height: 100%; border-radius: 2px; background: var(--green); width: 0%; transition: width .3s; }
+
+    /* TOOLS CHIPS */
+    .tools-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .tool-chip {
+      padding: 5px 12px; border-radius: 50px; font-size: .78rem; font-weight: 600;
+      border: 1.5px solid rgba(21,32,53,0.15); cursor: pointer;
+      color: var(--mid); transition: all .2s; user-select: none;
+    }
+    .tool-chip.selected { background: var(--green); color: white; border-color: var(--green); }
+
+    /* SUBMIT */
+    .submit-row { display: flex; gap: 12px; margin-top: 6px; }
+    .btn-submit {
+      flex: 1; padding: 13px; border-radius: 10px;
+      background: var(--green); color: white; font-weight: 700;
+      font-size: .92rem; border: none; cursor: pointer;
+      transition: background .2s, transform .15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover { background: #3d9e6b; transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+    .btn-reset {
+      padding: 13px 20px; border-radius: 10px;
+      background: transparent; color: var(--mid);
+      border: 1.5px solid rgba(21,32,53,0.15); font-weight: 600;
+      font-size: .92rem; cursor: pointer; transition: all .2s;
+    }
+    .btn-reset:hover { border-color: var(--orange); color: var(--orange); }
+
+    .form-status {
+      margin-top: 14px; padding: 11px 16px; border-radius: 10px;
+      font-size: .84rem; font-weight: 600; display: none;
+    }
+    .form-status.success { display: block; background: rgba(76,175,125,0.1); color: #2e7d52; border: 1px solid rgba(76,175,125,0.2); }
+    .form-status.error { display: block; background: rgba(232,74,74,0.08); color: #b52a2a; border: 1px solid rgba(232,74,74,0.18); }
+
+    /* PROJECT LIST (sidebar) */
+    .project-list { display: flex; flex-direction: column; gap: 14px; }
+    .proj-item {
+      background: rgba(255,255,255,0.82); backdrop-filter: blur(8px);
+      border: 1px solid rgba(76,175,125,0.12); border-radius: 14px;
+      padding: 16px 18px; display: flex; gap: 14px; align-items: center;
+      transition: box-shadow .2s;
+    }
+    .proj-item:hover { box-shadow: 0 8px 24px rgba(21,32,53,0.08); }
+    .proj-thumb {
+      width: 56px; height: 56px; border-radius: 10px; object-fit: cover;
+      background: linear-gradient(135deg, #c8e6d0, #a8d8b0);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .proj-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+    .proj-info { flex: 1; min-width: 0; }
+    .proj-name { font-size: .9rem; font-weight: 700; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .proj-cat { font-size: .74rem; color: var(--mid); margin-top: 2px; }
+    .proj-actions { display: flex; gap: 6px; }
+    .proj-btn {
+      width: 30px; height: 30px; border-radius: 8px; border: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; transition: all .2s;
+    }
+    .proj-btn.edit { background: rgba(76,175,125,0.1); color: var(--green); }
+    .proj-btn.edit:hover { background: var(--green); color: white; }
+    .proj-btn.del { background: rgba(232,74,74,0.08); color: #c0392b; }
+    .proj-btn.del:hover { background: #c0392b; color: white; }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--mid); }
+    .empty-state .empty-icon { font-size: 2.4rem; margin-bottom: 10px; opacity: .5; }
+    .empty-state p { font-size: .88rem; }
+
+    .list-loading { text-align: center; padding: 30px; color: var(--mid); font-size: .88rem; }
+
+    @media(max-width:900px) {
+      .admin-wrap { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-bg"><canvas id="shader-canvas"></canvas></div>
+
+<!-- LOGIN GATE -->
+<div id="loginGate">
+  <div class="login-box">
+    <div style="font-size:2rem;margin-bottom:12px;">🔐</div>
+    <h2>Admin Panel</h2>
+    <p>Masukkan password untuk mengakses halaman admin</p>
+    <input type="password" id="pwInput" placeholder="Password admin" onkeydown="if(event.key==='Enter')checkLogin()">
+    <button onclick="checkLogin()">Masuk</button>
+    <div class="login-error" id="loginError">Password salah. Coba lagi.</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    Fiqram <span class="admin-badge">ADMIN</span>
+  </a>
+  <div class="nav-right">
+    <a href="projects.html">← Lihat Projects</a>
+    <a href="index.html">Home</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="admin-wrap" id="adminContent" style="display:none;">
+
+  <!-- LEFT: FORM -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div>
+          <div class="card-title" id="formTitle">Tambah Project Baru</div>
+          <div class="card-sub">Isi semua informasi project dengan lengkap</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <input type="hidden" id="editId">
+
+        <!-- IMAGE UPLOAD -->
+        <div class="form-group">
+          <label>Thumbnail Project</label>
+          <div class="img-upload-area" id="uploadArea">
+            <input type="file" id="imgFile" accept="image/*" onchange="previewImage(this)">
+            <div class="img-upload-icon">🖼️</div>
+            <div class="img-upload-text">Klik atau drag gambar ke sini</div>
+            <div class="img-upload-sub">PNG, JPG, WEBP — maks 5MB</div>
+          </div>
+          <div class="upload-progress" id="uploadProgress">
+            <div class="upload-progress-bar" id="uploadBar"></div>
+          </div>
+          <img id="imgPreview" class="img-preview" alt="Preview">
+          <input type="hidden" id="imageUrl">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Judul Project *</label>
+            <input type="text" id="fTitle" placeholder="Nama project Anda">
+          </div>
+          <div class="form-group">
+            <label>Kategori *</label>
+            <select id="fCategory">
+              <option value="">Pilih kategori</option>
+              <option value="Web Design">Web Design</option>
+              <option value="Data Analysis">Data Analysis</option>
+              <option value="Dashboard">Dashboard</option>
+              <option value="UI/UX">UI/UX</option>
+              <option value="Branding">Branding</option>
+              <option value="Mobile App">Mobile App</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Deskripsi Singkat *</label>
+          <textarea id="fDesc" placeholder="Jelaskan project Anda secara singkat..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Nama Klien / Organisasi</label>
+          <input type="text" id="fClient" placeholder="Contoh: PT. Maju Bersama">
+        </div>
+
+        <div class="form-group">
+          <label>Link Project (opsional)</label>
+          <input type="url" id="fLink" placeholder="https://...">
+        </div>
+
+        <div class="form-group">
+          <label>Tools yang Digunakan</label>
+          <div class="tools-grid" id="toolsGrid">
+            <span class="tool-chip" onclick="toggleTool(this)">Python</span>
+            <span class="tool-chip" onclick="toggleTool(this)">HTML</span>
+            <span class="tool-chip" onclick="toggleTool(this)">CSS</span>
+            <span class="tool-chip" onclick="toggleTool(this)">JavaScript</span>
+            <span class="tool-chip" onclick="toggleTool(this)">R Studio</span>
+            <span class="tool-chip" onclick="toggleTool(this)">Google Colab</span>
+            <span class="tool-chip" onclick="toggleTool(this)">Excel</span>
+            <span class="tool-chip" onclick="toggleTool(this)">Power BI</span>
+            <span class="tool-chip" onclick="toggleTool(this)">Figma</span>
+            <span class="tool-chip" onclick="toggleTool(this)">Tableau</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Tahun</label>
+          <input type="number" id="fYear" placeholder="2024" min="2000" max="2099">
+        </div>
+
+        <div class="submit-row">
+          <button class="btn-submit" id="submitBtn" onclick="submitProject()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Simpan Project
+          </button>
+          <button class="btn-reset" onclick="resetForm()">Reset</button>
+        </div>
+        <div class="form-status" id="formStatus"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: PROJECT LIST -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon" style="background: linear-gradient(135deg, var(--orange), #f5b87a);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Daftar Project</div>
+          <div class="card-sub" id="projectCount">Memuat...</div>
+        </div>
+      </div>
+      <div class="card-body" style="padding: 16px;">
+        <div class="project-list" id="projectList">
+          <div class="list-loading">⏳ Memuat project...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SHADER -->
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas');
+  function syncSize() {
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || window.innerHeight;
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  }
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(syncSize).observe(canvas);
+  syncSize();
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position; varying vec2 v_texCoord;
+void main() { v_texCoord = a_position * 0.5 + 0.5; gl_Position = vec4(a_position, 0.0, 1.0); }`;
+  const fs = `precision highp float;
+uniform float u_time; uniform vec2 u_resolution; varying vec2 v_texCoord;
+void main() {
+  vec2 uv = v_texCoord;
+  vec3 bg = vec3(0.96, 0.98, 0.96);
+  vec3 c1 = vec3(0.298, 0.686, 0.490); vec3 c2 = vec3(0.910, 0.514, 0.290); vec3 c3 = vec3(0.82, 0.96, 0.87);
+  float n1 = sin(uv.x * 3.0 + u_time * 0.35) * cos(uv.y * 2.0 + u_time * 0.22);
+  float n2 = cos(uv.y * 4.0 - u_time * 0.28) * sin(uv.x * 2.5 + u_time * 0.18);
+  vec3 col = bg;
+  col = mix(col, c1, smoothstep(0.3, 0.8, n1) * 0.16);
+  col = mix(col, c2, smoothstep(0.4, 0.9, n2) * 0.13);
+  col = mix(col, c3, smoothstep(0.5, 1.0, n1 + n2) * 0.10);
+  col += 0.012 * sin(u_time * 0.4 + length(uv - 0.5) * 8.0);
+  gl_FragColor = vec4(col, 1.0);
+}`;
+  function cs(t, s) { const sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh); return sh; }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs)); gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos); gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+
+<script>
+// ============================================================
+// 🔧 KONFIGURASI — ISI SESUAI AKUN ANDA
+// ============================================================
+const CONFIG = {
+  // Supabase
+  SUPABASE_URL: 'https://ngtprtosrnpebnlvjlit.supabase.co',         // ganti dengan Project URL Anda
+  SUPABASE_KEY: 'sb_publishable_KLP_Jv3Q1gQuD3eS4guS2Q_ly5VabJ9',   // ganti dengan anon public key Anda
+
+  // Cloudinary
+  CLOUDINARY_CLOUD: 'a9ngojim',               // ganti dengan Cloud Name Anda
+  CLOUDINARY_PRESET: 'Preset fiqram',           // ganti dengan Upload Preset Anda
+
+  // Admin password
+  ADMIN_PASSWORD: 'admin123'                         // ganti dengan password pilihan Anda
+};
+// ============================================================
+
+// ── LOGIN ──
+function checkLogin() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === CONFIG.ADMIN_PASSWORD) {
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('adminContent').style.display = 'grid';
+    loadProjects();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+// ── SUPABASE HELPERS ──
+async function sbFetch(path, options = {}) {
+  const res = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      'apikey': CONFIG.SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+// ── CLOUDINARY UPLOAD ──
+async function uploadToCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CONFIG.CLOUDINARY_PRESET);
+  const bar = document.getElementById('uploadBar');
+  const prog = document.getElementById('uploadProgress');
+  prog.style.display = 'block';
+  bar.style.width = '30%';
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CONFIG.CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: fd });
+  bar.style.width = '100%';
+  setTimeout(() => { prog.style.display = 'none'; bar.style.width = '0%'; }, 600);
+  if (!res.ok) throw new Error('Upload gagal');
+  const data = await res.json();
+  return data.secure_url;
+}
+
+function previewImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const preview = document.getElementById('imgPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = 'block';
+}
+
+// ── TOOLS CHIP ──
+function toggleTool(el) { el.classList.toggle('selected'); }
+function getSelectedTools() {
+  return [...document.querySelectorAll('.tool-chip.selected')].map(c => c.textContent).join(', ');
+}
+function setSelectedTools(toolsStr) {
+  document.querySelectorAll('.tool-chip').forEach(c => {
+    c.classList.toggle('selected', toolsStr && toolsStr.includes(c.textContent));
+  });
+}
+
+// ── SUBMIT PROJECT ──
+async function submitProject() {
+  const title = document.getElementById('fTitle').value.trim();
+  const category = document.getElementById('fCategory').value;
+  const description = document.getElementById('fDesc').value.trim();
+  if (!title || !category || !description) {
+    showStatus('error', '⚠️ Judul, kategori, dan deskripsi wajib diisi.');
+    return;
+  }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+  try {
+    let imageUrl = document.getElementById('imageUrl').value;
+    const imgFile = document.getElementById('imgFile').files[0];
+    if (imgFile) imageUrl = await uploadToCloudinary(imgFile);
+
+    const payload = {
+      title, category, description,
+      client: document.getElementById('fClient').value.trim(),
+      link: document.getElementById('fLink').value.trim(),
+      tools: getSelectedTools(),
+      year: parseInt(document.getElementById('fYear').value) || new Date().getFullYear(),
+      image_url: imageUrl || null
+    };
+
+    const editId = document.getElementById('editId').value;
+    if (editId) {
+      await sbFetch(`projects?id=eq.${editId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      showStatus('success', '✅ Project berhasil diperbarui!');
+    } else {
+      await sbFetch('projects', { method: 'POST', body: JSON.stringify(payload) });
+      showStatus('success', '✅ Project berhasil disimpan!');
+    }
+    resetForm();
+    loadProjects();
+  } catch(err) {
+    showStatus('error', '❌ Gagal menyimpan: ' + err.message);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Simpan Project';
+}
+
+function showStatus(type, msg) {
+  const el = document.getElementById('formStatus');
+  el.className = 'form-status ' + type;
+  el.textContent = msg;
+  setTimeout(() => el.className = 'form-status', 4000);
+}
+
+function resetForm() {
+  ['fTitle','fDesc','fClient','fLink','fYear','editId','imageUrl'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fCategory').value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('imgFile').value = '';
+  document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('formTitle').textContent = 'Tambah Project Baru';
+}
+
+// ── LOAD PROJECTS ──
+async function loadProjects() {
+  const list = document.getElementById('projectList');
+  const count = document.getElementById('projectCount');
+  list.innerHTML = '<div class="list-loading">⏳ Memuat project...</div>';
+  try {
+    const data = await sbFetch('projects?order=created_at.desc');
+    count.textContent = `${data.length} project tersimpan`;
+    if (data.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p>Belum ada project. Tambahkan yang pertama!</p></div>`;
+      return;
+    }
+    list.innerHTML = data.map(p => `
+      <div class="proj-item">
+        <div class="proj-thumb">
+          ${p.image_url ? `<img src="${p.image_url}" alt="${p.title}">` : '📁'}
+        </div>
+        <div class="proj-info">
+          <div class="proj-name">${p.title}</div>
+          <div class="proj-cat">${p.category} ${p.year ? '• ' + p.year : ''}</div>
+        </div>
+        <div class="proj-actions">
+          <button class="proj-btn edit" onclick='editProject(${JSON.stringify(p)})' title="Edit">✏️</button>
+          <button class="proj-btn del" onclick="deleteProject('${p.id}','${p.title}')" title="Hapus">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(err) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Gagal memuat: ${err.message}</p></div>`;
+  }
+}
+
+function editProject(p) {
+  document.getElementById('editId').value = p.id;
+  document.getElementById('fTitle').value = p.title || '';
+  document.getElementById('fCategory').value = p.category || '';
+  document.getElementById('fDesc').value = p.description || '';
+  document.getElementById('fClient').value = p.client || '';
+  document.getElementById('fLink').value = p.link || '';
+  document.getElementById('fYear').value = p.year || '';
+  document.getElementById('imageUrl').value = p.image_url || '';
+  if (p.image_url) {
+    const preview = document.getElementById('imgPreview');
+    preview.src = p.image_url; preview.style.display = 'block';
+  }
+  setSelectedTools(p.tools || '');
+  document.getElementById('formTitle').textContent = 'Edit Project';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function deleteProject(id, title) {
+  if (!confirm(`Hapus project "${title}"?`)) return;
+  try {
+    await sbFetch(`projects?id=eq.${id}`, { method: 'DELETE' });
+    loadProjects();
+  } catch(err) {
+    alert('Gagal menghapus: ' + err.message);
+  }
+}
+</script>
+</body>
+</html>

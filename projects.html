@@ -119,7 +119,7 @@
     .tab:hover:not(.active) { border-color: var(--orange); color: var(--orange); }
 
     /* ── PROJECTS GRID ── */
-    .projects-wrap { padding: 0 7% 90px; }
+    .projects-wrap { padding: 0 7% 90px; min-height: 200px; }
     .projects-grid {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
       max-width: 1280px; margin: 0 auto;
@@ -133,6 +133,7 @@
       overflow: hidden;
       transition: transform .3s, box-shadow .3s;
       display: flex; flex-direction: column;
+      text-decoration: none; color: inherit;
     }
     .project-card:hover { transform: translateY(-8px); box-shadow: 0 24px 50px rgba(21,32,53,0.14); }
 
@@ -168,18 +169,25 @@
 
     .card-body { padding: 22px; flex: 1; display: flex; flex-direction: column; }
     .card-title { font-size: 1.05rem; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
-    .card-desc { font-size: .85rem; color: var(--mid); line-height: 1.65; margin-bottom: 16px; flex: 1; }
+    .card-desc { font-size: .85rem; color: var(--mid); line-height: 1.65; margin-bottom: 16px; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .card-meta {
       display: flex; align-items: center; justify-content: space-between;
       font-size: .78rem; color: #8a9ab0; font-weight: 500;
       padding-top: 14px; border-top: 1px solid rgba(21,32,53,0.06);
     }
-    .card-meta-left { display: flex; align-items: center; gap: 14px; }
+    .card-meta-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
     .card-link {
       color: var(--green); font-weight: 700; text-decoration: none;
       display: flex; align-items: center; gap: 4px; transition: gap .2s;
+      white-space: nowrap;
     }
-    .card-link:hover { gap: 8px; }
+    .project-card:hover .card-link { gap: 8px; }
+
+    /* ── EMPTY / LOADING STATE ── */
+    .empty-projects {
+      grid-column: 1 / -1;
+      text-align: center; padding: 60px 20px; color: var(--mid); font-size: .95rem;
+    }
 
     /* ── CTA SECTION ── */
     .cta-section {
@@ -308,129 +316,17 @@
   <p class="page-sub">Kumpulan proyek yang menggabungkan desain, data, dan teknologi — dari dashboard analitik hingga antarmuka web yang interaktif.</p>
 </section>
 
-<!-- FILTER TABS -->
+<!-- FILTER TABS (diisi otomatis dari kategori project) -->
 <div class="filter-wrap">
-  <div class="filter-tabs">
-    <button class="tab active">Semua</button>
-    <button class="tab">Web Design</button>
-    <button class="tab">Data Analysis</button>
-    <button class="tab">Dashboard</button>
-    <button class="tab">UI/UX</button>
+  <div class="filter-tabs" id="filterTabs">
+    <button class="tab active" data-cat="Semua">Semua</button>
   </div>
 </div>
 
-<!-- PROJECTS GRID -->
+<!-- PROJECTS GRID (diisi otomatis dari Supabase) -->
 <div class="projects-wrap">
-  <div class="projects-grid">
-
-    <div class="project-card">
-      <div class="card-img card-img-1"><span class="card-img-icon">🎨</span><span class="card-tag">Web Design</span></div>
-      <div class="card-body">
-        <div class="card-title">Global Brand Refresh</div>
-        <div class="card-desc">Redesain identitas merek lengkap untuk perusahaan teknologi, mencakup logo, panduan visual, dan aset digital.</div>
-        <div class="card-meta">
-          <div class="card-meta-left"><span>👤 TechCorp</span><span>📅 2024</span></div>
-          <a href="#" class="card-link">Lihat →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card">
-      <div class="card-img card-img-2"><span class="card-img-icon">📊</span><span class="card-tag">Dashboard</span></div>
-      <div class="card-body">
-        <div class="card-title">Sales Performance Dashboard</div>
-        <div class="card-desc">Dashboard Power BI interaktif untuk memonitor performa penjualan regional secara real-time.</div>
-        <div class="card-meta">
-          <div class="card-meta-left"><span>👤 RetailX</span><span>📅 2024</span></div>
-          <a href="#" class="card-link">Lihat →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card">
-      <div class="card-img card-img-3"><span class="card-img-icon">📈</span><span class="card-tag">Data Analysis</span></div>
-      <div class="card-body">
-        <div class="card-title">Customer Churn Prediction</div>
-        <div class="card-desc">Model prediksi churn pelanggan menggunakan Python dan machine learning untuk strategi retensi.</div>
-        <div class="card-meta">
-          <div class="card-meta-left"><span>👤 TelcoData</span><span>📅 2023</span></div>
-          <a href="#" class="card-link">Lihat →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card">
-      <div class="card-img card-img-4"><span class="card-img-icon">🛍️</span><span class="card-tag">Web Design</span></div>
-      <div class="card-body">
-        <div class="card-title">E-Commerce Redesign</div>
-        <div class="card-desc">Perancangan ulang pengalaman belanja online yang meningkatkan konversi sebesar 38%.</div>
-        <div class="card-meta">
-          <div class="card-meta-left"><span>👤 ShopNova</span><span>📅 2024</span></div>
-          <a href="#" class="card-link">Lihat →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card">
-      <div class="card-img card-img-5"><span class="card-img-icon">🎓</span><span class="card-tag">UI/UX</span></div>
-      <div class="card-body">
-        <div class="card-title">Learning Platform UI</div>
-        <div class="card-desc">Desain antarmuka platform e-learning dengan gamifikasi dan dashboard progres belajar.</div>
-        <div class="card-meta">
-          <div class="card-meta-left"><span>👤 EduSpace</span><span>📅 2023</span></div>
-          <a href="#" class="card-link">Lihat →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card">
-      <div class="card-img card-img-6"><span class="card-img-icon">💰</span><span class="card-tag">Dashboard</span></div>
-      <div class="card-body">
-        <div class="card-title">Finance Tracker Dashboard</div>
-        <div class="card-desc">Visualisasi data keuangan pribadi dengan Excel & Power BI untuk perencanaan anggaran.</div>
-        <div class="card-meta">
-          <div class="card-meta-left"><span>👤 Personal</span><span>📅 2023</span></div>
-          <a href="#" class="card-link">Lihat →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card">
-      <div class="card-img card-img-7"><span class="card-img-icon">🌿</span><span class="card-tag">Web Design</span></div>
-      <div class="card-body">
-        <div class="card-title">Sustainable Brand Identity</div>
-        <div class="card-desc">Identitas merek ramah lingkungan untuk startup fashion berkelanjutan.</div>
-        <div class="card-meta">
-          <div class="card-meta-left"><span>👤 EcoThread</span><span>📅 2023</span></div>
-          <a href="#" class="card-link">Lihat →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card">
-      <div class="card-img card-img-8"><span class="card-img-icon">📉</span><span class="card-tag">Data Analysis</span></div>
-      <div class="card-body">
-        <div class="card-title">Market Trend Analysis</div>
-        <div class="card-desc">Analisis tren pasar menggunakan R Studio untuk mendukung keputusan investasi.</div>
-        <div class="card-meta">
-          <div class="card-meta-left"><span>👤 InvestCo</span><span>📅 2022</span></div>
-          <a href="#" class="card-link">Lihat →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card">
-      <div class="card-img card-img-9"><span class="card-img-icon">🏥</span><span class="card-tag">Web Design</span></div>
-      <div class="card-body">
-        <div class="card-title">Health Clinic Website</div>
-        <div class="card-desc">Website klinik kesehatan modern dengan sistem booking online untuk pasien.</div>
-        <div class="card-meta">
-          <div class="card-meta-left"><span>👤 MedCare</span><span>📅 2022</span></div>
-          <a href="#" class="card-link">Lihat →</a>
-        </div>
-      </div>
-    </div>
-
+  <div class="projects-grid" id="projectsGrid">
+    <div class="empty-projects">⏳ Memuat project...</div>
   </div>
 </div>
 
@@ -564,7 +460,7 @@ void main() {
 })();
 </script>
 
-<!-- UI SCRIPT -->
+<!-- NAV TOGGLE SCRIPT -->
 <script>
   const navToggle = document.getElementById('navToggle');
   const navLinksMenu = document.getElementById('navLinks');
@@ -583,13 +479,88 @@ void main() {
     navOverlay.addEventListener('click', closeMenu);
     navLinksMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
   }
+</script>
 
-  document.querySelectorAll('.tab').forEach(tab => {
+<!-- SUPABASE: LOAD & RENDER PROJECTS -->
+<script>
+// ============================================================
+// 🔧 KONFIGURASI SUPABASE — samakan dengan admin.html
+// ============================================================
+const SUPABASE_URL = 'https://ngtprtosrnpebnlvjlit.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_KLP_Jv3Q1gQuD3eS4guS2Q_ly5VabJ9';
+// ============================================================
+
+async function sbGet(path) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: { 'apikey': SUPABASE_KEY }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+const EMOJI_MAP = { 'Web Design':'🌐','Data Analysis':'📈','Dashboard':'📊','UI/UX':'🎨','Branding':'✨','Mobile App':'📱' };
+
+let allProjects = [];
+
+function renderProjects(list) {
+  const grid = document.getElementById('projectsGrid');
+  if (!list || list.length === 0) {
+    grid.innerHTML = '<div class="empty-projects">📂 Belum ada project untuk kategori ini.</div>';
+    return;
+  }
+  grid.innerHTML = list.map((p, i) => `
+    <a class="project-card" href="project_detail.html?id=${p.id}">
+      <div class="card-img card-img-${(i % 9) + 1}">
+        ${p.image_url
+          ? `<img src="${p.image_url}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;">`
+          : `<span class="card-img-icon">${EMOJI_MAP[p.category] || '📁'}</span>`}
+        <span class="card-tag">${p.category || 'Project'}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${p.title}</div>
+        <div class="card-desc">${p.description || ''}</div>
+        <div class="card-meta">
+          <div class="card-meta-left">
+            ${p.client ? `<span>👤 ${p.client}</span>` : ''}
+            ${p.year ? `<span>📅 ${p.year}</span>` : ''}
+          </div>
+          <span class="card-link">Lihat →</span>
+        </div>
+      </div>
+    </a>
+  `).join('');
+}
+
+function renderTabs() {
+  const wrap = document.getElementById('filterTabs');
+  const cats = ['Semua', ...new Set(allProjects.map(p => p.category).filter(Boolean))];
+  wrap.innerHTML = cats.map((c, i) =>
+    `<button class="tab ${i === 0 ? 'active' : ''}" data-cat="${c}">${c}</button>`
+  ).join('');
+  wrap.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      wrap.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
+      const cat = tab.dataset.cat;
+      renderProjects(cat === 'Semua' ? allProjects : allProjects.filter(p => p.category === cat));
     });
   });
+}
+
+async function loadProjects() {
+  const grid = document.getElementById('projectsGrid');
+  grid.innerHTML = '<div class="empty-projects">⏳ Memuat project...</div>';
+  try {
+    const data = await sbGet('projects?order=created_at.desc');
+    allProjects = data || [];
+    renderTabs();
+    renderProjects(allProjects);
+  } catch (err) {
+    grid.innerHTML = `<div class="empty-projects">❌ Gagal memuat project: ${err.message}</div>`;
+  }
+}
+
+loadProjects();
 </script>
 </body>
 </html>
